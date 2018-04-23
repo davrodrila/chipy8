@@ -6,6 +6,7 @@ class CPU:
     GENERAL_PURPOSE_REGISTER_SIZE = 0xFF
     I_REGISTER_SIZE = 0xFFFF
     PROGRAM_COUNTER_SIZE = 0xFFFF
+    PROGRAM_COUNTER_ENTRYPOINT = 0x0200
     STACK_POINTER_SIZE = 0xFF
     STACK_SIZE = 0xF
     STACK_ADDRESS_SIZE = 0xFFFF
@@ -37,7 +38,7 @@ class CPU:
         self.I = self.I_REGISTER_SIZE
 
         # Currently executing memory address
-        self.program_counter = self.PROGRAM_COUNTER_SIZE
+        self.program_counter = self.PROGRAM_COUNTER_ENTRYPOINT
 
         # Point to the top level of the stack
         self.stack_pointer = self.STACK_POINTER_SIZE
@@ -45,5 +46,10 @@ class CPU:
         # Initialize stack array
         self.stack = [self.STACK_ADDRESS_SIZE for i in range(self.STACK_SIZE)]
 
+        self.map_opcode()
 
+    def map_opcode(self):
+        return None
 
+    def do_cycle(self):
+        return None
