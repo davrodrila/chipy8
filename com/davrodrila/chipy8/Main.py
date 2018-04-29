@@ -13,7 +13,7 @@ def Main():
 
     rom_path = "resources/pong.rom"
     rom = FileUtils.load_rom_from_path(rom_path)
-    scale_mode = 1
+    scale_mode = 8
     screen = Screen(scale_mode)
     cpu = CPU(screen)
     cpu.memory.load_rom_to_memory(rom)
