@@ -1,5 +1,5 @@
 from com.davrodrila.chipy8.Memory.Memory import Memory
-
+from com.davrodrila.chipy8.GPU.Screen import Screen
 
 class CPU:
 
@@ -11,7 +11,7 @@ class CPU:
     STACK_SIZE = 0xF
     STACK_ADDRESS_SIZE = 0xFFFF
 
-    def __init__(self):
+    def __init__(self, screen):
 
         self.memory = Memory()
 
@@ -33,6 +33,7 @@ class CPU:
         self.VD = self.GENERAL_PURPOSE_REGISTER_SIZE
         self.VE = self.GENERAL_PURPOSE_REGISTER_SIZE
         self.VF = self.GENERAL_PURPOSE_REGISTER_SIZE
+        self.screen = screen
 
         # 16 bit register used to store addresses. Only the least significant 12 bits are used
         self.I = self.I_REGISTER_SIZE
@@ -52,4 +53,5 @@ class CPU:
         return None
 
     def do_cycle(self):
+        self.screen.draw()
         return None
