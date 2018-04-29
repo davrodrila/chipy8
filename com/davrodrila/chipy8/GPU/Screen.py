@@ -20,8 +20,10 @@ class Screen:
         self.screen_data[10][10] = self.white
 
     def draw(self):
-        for x in range(self.screen_width):
-            for y in range(self.screen_height):
-                self.draw_at_screen_position(x, y, self.screen_data[x][y])
+        self.draw_at_screen_position(10,10,self.white)
+        # for x in range(self.screen_width):
+        #     for y in range(self.screen_height):
+        #         self.draw_at_screen_position(x, y, self.screen_data[x][y])
 
     def draw_at_screen_position(self, x, y, color):
+        self.screen_surface.fill(color, (x,y), color)
