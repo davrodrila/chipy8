@@ -13,7 +13,7 @@ def Main():
 
     rom_path = "resources/pong.rom"
     rom = FileUtils.load_rom_from_path(rom_path)
-    scale_mode = 8
+    scale_mode = 16
     screen = Screen(scale_mode)
     cpu = CPU(screen)
     cpu.memory.load_rom_to_memory(rom)
@@ -22,10 +22,14 @@ def Main():
     pygame.init()
     screen.init_screen()
     while emulation_is_running:
+
         cpu.do_cycle()
-        if keyboard.is_pressed('esc'):
-            emulation_is_running = False
-            print("Closing windows...")
+        events = pygame.event.get()
+        for event in events:
+            if event.type==pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    emulation_is_running = False
+                    print("Closing windows...")
 
 
 

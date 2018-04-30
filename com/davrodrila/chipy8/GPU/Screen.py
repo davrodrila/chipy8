@@ -17,6 +17,7 @@ class Screen:
     def __init__(self, scale_factor):
         self.screen_width = CHIP_8_WIDTH
         self.screen_height = CHIP_8_HEIGHT
+
         if scale_factor <=0:
             self.scale_factor = NO_SCALE
         else:
@@ -27,6 +28,7 @@ class Screen:
         self.white = Color(250, 250, 250, 255)
         self.black = Color(0, 0, 0, 0)
 
+        self.screen_surface = None
         self.screen_data = [[self.black for x in range(self.screen_height)] for y in range(self.screen_width)]
 
     def init_screen(self):
@@ -34,7 +36,8 @@ class Screen:
         pygame.display.set_caption("ChiPy8")
         self.screen_surface = pygame.display.set_mode(
             (self.screen_width * self.scale_factor, self.screen_height * self.scale_factor))
-        self.screen_data[10][10] = self.white
+
+
 
 
     def draw(self):
