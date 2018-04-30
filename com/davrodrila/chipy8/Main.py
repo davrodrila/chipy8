@@ -12,10 +12,12 @@ def Main():
     print("Starting Emulator...")
 
     rom_path = "resources/pong.rom"
-    rom = FileUtils.load_rom_from_path(rom_path)
+    font_path = "resources/fonts/"
+    font_prefix = 'font'
+    rom = FileUtils.load_file_from_path(rom_path)
     scale_mode = 16
     screen = Screen(scale_mode)
-    cpu = CPU(screen)
+    cpu = CPU(screen, font_path, font_prefix)
     cpu.memory.load_rom_to_memory(rom)
 
     emulation_is_running = True

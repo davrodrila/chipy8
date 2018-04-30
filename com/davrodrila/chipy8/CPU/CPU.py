@@ -11,11 +11,11 @@ class CPU:
     STACK_SIZE = 0xF
     STACK_ADDRESS_SIZE = 0xFFFF
 
-    def __init__(self, screen):
+    def __init__(self, screen, font_directory, font_prefix):
 
-        self.memory = Memory()
+        self.memory = Memory(font_directory, font_prefix)
 
-        #General Purpose 8 bit registers
+        # General Purpose 8 bit registers. Might have to move those to an array for convenience purposes
 
         self.V0 = self.GENERAL_PURPOSE_REGISTER_SIZE
         self.V1 = self.GENERAL_PURPOSE_REGISTER_SIZE
@@ -41,7 +41,9 @@ class CPU:
         # Currently executing memory address
         self.program_counter = self.PROGRAM_COUNTER_ENTRYPOINT
 
-        # Point to the top level of the stack
+        # Point to the top level of the stack. Right now this doesn't seem correct.
+        # Need to look for a way to store stacks. Maybe Python has a Stack built-in?
+
         self.stack_pointer = self.STACK_POINTER_SIZE
 
         # Initialize stack array
@@ -49,9 +51,19 @@ class CPU:
 
         self.map_opcode()
 
+    # Lookup table for implementation
     def map_opcode(self):
         return None
 
     def do_cycle(self):
+        # read opcode from PC
+        # Do you always have to load two words or does it depend from the first word byte? Research: ¿1 byte ops?
+        first_word = self.memory.read_from_address(self.program_counter)
+        self.program_counter +=1
+        second_word = self.memory.read_from_address(self.program_counter)
+
+        # execute opcode
+        # ¿decrease timers if needed?
+        #
         self.screen.draw()
         return None
