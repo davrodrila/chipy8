@@ -6,9 +6,22 @@ class Memory:
     MEMORY_TOTAL_SIZE = 0xFFF
     PROGRAM_ZONE_START = 0x200
     ETI_660_ZONE_START = 0x600
+
+    # Indicates position specifying the address we should map the sprite to.
     FONT_FILE_STARTING_ADDRESS = 0
+
+    # Where on the font file starts indicating the values for each sprite. Values are expressed on hexadecimal and
+    # will later be converted to binary strings when actually drawing the sprites. The sprites are actually specified
+    #  in a nibble, but a full byte must be used, padding the least significant nibble with 0's.
+    #  In future implementations, the screen will turn on the 1's and leave the 0's turned off.
+    # If the pixel it attempts to turn is already turned, it will turn it off.
+
     FONT_FILE_SPRITE_DATA_START = 1
+
+    # Indicates maximun filesize of the font file used. CHIP8 specs indicate all the fonts of the same size.
+    # But I rather have this here as a reminder
     FONT_FILE_SIZE = 6
+
     # List of the font system built in the CHIP8 system
     BUILTIN_FONT_SPRITE_LIST = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
 
