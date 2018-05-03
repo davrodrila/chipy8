@@ -3,6 +3,8 @@ from com.davrodrila.chipy8.GPU.Screen import Screen
 
 class CPU:
 
+    GENERAL_PURPOSE_REGISTERS_LIST = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
+
     GENERAL_PURPOSE_REGISTER_SIZE = 0xFF
     I_REGISTER_SIZE = 0xFFFF
     PROGRAM_COUNTER_SIZE = 0xFFFF
@@ -15,24 +17,10 @@ class CPU:
 
         self.memory = Memory(font_directory, font_prefix)
 
-        # General Purpose 8 bit registers. Might have to move those to an array for convenience purposes
+        # Array containing the 16 general purpose registers of CHIP8.
 
-        self.V0 = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.V1 = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.V2 = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.V3 = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.V4 = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.V5 = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.V6 = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.V7 = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.V8 = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.V9 = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.VA = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.VB = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.VC = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.VD = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.VE = self.GENERAL_PURPOSE_REGISTER_SIZE
-        self.VF = self.GENERAL_PURPOSE_REGISTER_SIZE
+        self.V = self.initialize_general_registers()
+
         self.screen = screen
 
         # 16 bit register used to store addresses. Only the least significant 12 bits are used
@@ -50,6 +38,12 @@ class CPU:
         self.stack = [self.STACK_ADDRESS_SIZE for i in range(self.STACK_SIZE)]
 
         self.map_opcode()
+
+    def initialize_general_registers(self):
+        v = []
+        for i in self.GENERAL_PURPOSE_REGISTERS_LIST:
+            v[self.GENERAL_PURPOSE_REGISTERS_LIST[i]] = self.GENERAL_PURPOSE_REGISTER_SIZE
+        return v
 
     # Lookup table for implementation
     def map_opcode(self):
