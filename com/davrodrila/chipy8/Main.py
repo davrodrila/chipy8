@@ -2,7 +2,6 @@ from com.davrodrila.chipy8.CPU.CPU import CPU
 from com.davrodrila.chipy8.Utils import FileUtils
 from com.davrodrila.chipy8.GPU.Screen import Screen
 
-import keyboard
 import pygame
 from pygame.locals import *
 
