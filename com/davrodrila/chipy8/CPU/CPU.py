@@ -36,7 +36,11 @@ class CPU:
 
         # Initialize stack array
         self.stack = [self.STACK_ADDRESS_SIZE for i in range(self.STACK_SIZE)]
-
+        # Delay Timer. Substracts 1 at a rate of 60hz, will deactivate when it reaches 0.
+        # Not sure what this will be used for yet.
+        self.DT = 0
+        # Sound timer. Also decrements at a 60hz rate. If the value is greater than 0, sound should play.
+        self.ST = 0
         self.map_opcode()
 
     def initialize_general_registers(self):
@@ -46,7 +50,11 @@ class CPU:
         return v
 
     # Lookup table for implementation
+    # OPCode list: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.1
+    # (Apparently this is isn't 100% accurate but we'll see)
+
     def map_opcode(self):
+
         return None
 
     def do_cycle(self):
