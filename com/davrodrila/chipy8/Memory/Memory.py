@@ -1,5 +1,6 @@
 import com.davrodrila.chipy8.Utils.FileUtils
 from com.davrodrila.chipy8.Utils import FileUtils
+from com.davrodrila.chipy8.Utils.Byte import Byte
 
 
 class Memory:
@@ -36,7 +37,7 @@ class Memory:
 
     def read_from_address(self, address):
         try:
-            return self.memory[address]
+            return Byte(self.memory[address])
         except IndexError:
             return 0x00
 
