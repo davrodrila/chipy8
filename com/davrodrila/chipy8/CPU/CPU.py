@@ -1,20 +1,22 @@
 from com.davrodrila.chipy8.Memory.Memory import Memory
 from com.davrodrila.chipy8.GPU.Screen import Screen
+from com.davrodrila.chipy8.Utils import ByteUtils
+from com.davrodrila.chipy8.Utils.Byte import Byte
+from random import randint
+
 
 class CPU:
+    GENERAL_PURPOSE_REGISTERS_LIST = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF}
 
-    GENERAL_PURPOSE_REGISTERS_LIST = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
-
-    GENERAL_PURPOSE_REGISTER_SIZE = 0xFF
-    I_REGISTER_SIZE = 0xFFFF
-    PROGRAM_COUNTER_SIZE = 0xFFFF
+    GENERAL_PURPOSE_REGISTER_SIZE = 0x00
+    I_REGISTER_SIZE = 0x0000
+    PROGRAM_COUNTER_SIZE = 0x0000
     PROGRAM_COUNTER_ENTRYPOINT = 0x0200
-    STACK_POINTER_SIZE = 0xFF
-    STACK_SIZE = 0xF
-    STACK_ADDRESS_SIZE = 0xFFFF
+    STACK_POINTER_VALUE = 0x00
+    STACK_SIZE = 0x10
+    STACK_ADDRESS_SIZE = 0x0000
 
     def __init__(self, screen, font_directory, font_prefix):
-
         self.memory = Memory(font_directory, font_prefix)
 
         # Array containing the 16 general purpose registers of CHIP8.
@@ -32,40 +34,173 @@ class CPU:
         # Point to the top level of the stack. Right now this doesn't seem correct.
         # Need to look for a way to store stacks. Maybe Python has a Stack built-in?
 
-        self.stack_pointer = self.STACK_POINTER_SIZE
+        self.stack_pointer = self.STACK_POINTER_VALUE
 
         # Initialize stack array
         self.stack = [self.STACK_ADDRESS_SIZE for i in range(self.STACK_SIZE)]
-        # Delay Timer. Substracts 1 at a rate of 60hz, will deactivate when it reaches 0.
+
+        # Delay Timer. Subtracts 1 at a rate of 60hz, will deactivate when it reaches 0.
         # Not sure what this will be used for yet.
         self.DT = 0
         # Sound timer. Also decrements at a 60hz rate. If the value is greater than 0, sound should play.
         self.ST = 0
-        self.map_opcode()
+        self.opcodes = self.map_opcodes()
+
+    def map_opcodes(self):
+        opcodes = [self.unsupported_opcode for i in range(0x10)]
+        opcodes[0x0] = self.misc_operations
+        opcodes[0x1] = self.jump_to_addres
+        opcodes[0x2] = self.call_addres
+        opcodes[0x3] = self.skip_if_vx_equal_to_byte
+        opcodes[0x4] = self.skip_if_vx__not_equal_to_byte
+        opcodes[0x5] = self.skip_if_vx__equal_to_vy
+        opcodes[0x6] = self.load_vx_from_byte
+        opcodes[0x7] = self.add_vx_byte
+        opcodes[0x8] = self.registers_operation
+        opcodes[0x9] = self.skip_if_vx_not_equal_to_vy
+        opcodes[0xA] = self.load_i_from_byte
+        opcodes[0xB] = self.jump_to_v0_plus_byte
+        opcodes[0xC] = self.random_number_bitwise_and
+        opcodes[0xD] = self.draw_sprite_on_vx_vy
+        return opcodes
 
     def initialize_general_registers(self):
-        v = []
+        temporal_registers = []
         for i in self.GENERAL_PURPOSE_REGISTERS_LIST:
-            v[self.GENERAL_PURPOSE_REGISTERS_LIST[i]] = self.GENERAL_PURPOSE_REGISTER_SIZE
-        return v
+            temporal_registers.insert(i, self.GENERAL_PURPOSE_REGISTER_SIZE)
+        return temporal_registers
 
     # Lookup table for implementation
     # OPCode list: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.1
     # (Apparently this is isn't 100% accurate but we'll see)
 
-    def map_opcode(self):
-
-        return None
+    def unsupported_opcode(self, byte1: Byte, byte2: Byte):
+        print("Opcode is not supported yet for byte: %s" % (hex(byte1.byte)))
 
     def do_cycle(self):
         # read opcode from PC
         # Do you always have to load two words or does it depend from the first word byte? Research: ¿1 byte ops?
         first_word = self.memory.read_from_address(self.program_counter)
-        self.program_counter +=1
+        self.program_counter += 1
         second_word = self.memory.read_from_address(self.program_counter)
 
         # execute opcode
         # ¿decrease timers if needed?
         #
+        self.opcodes[first_word.get_high_nibble()](first_word, second_word)
         self.screen.draw()
         return None
+
+    def misc_operations(self, byte1: Byte, byte2: Byte):
+        if byte2 == 0xE0:
+            self.clear_screen()
+        elif byte2 == 0xEE:
+            self.return_from_subroutine()
+
+    def clear_screen(self):
+        self.screen.clear_display()
+
+    # TODO: This needs a proper stack implementation
+    def return_from_subroutine(self, byte_1: Byte, byte_2: Byte):
+        self.program_counter = self.stack.pop(self.stack_pointer)
+        self.stack_pointer = -1
+
+    def jump_to_addres(self, byte_1: Byte, byte_2: Byte):
+        self.program_counter = ByteUtils.concatenate_nibble_before_byte(byte_1.get_low_nibble(), byte_2.byte)
+
+    def call_addres(self, byte_1: Byte, byte_2: Byte):
+        self.stack_pointer += 1
+        self.stack.append(self.program_counter)
+        self.program_counter = ByteUtils.concatenate_nibble_before_byte(byte_1.get_low_nibble(), byte_2.byte)
+
+    def skip_if_vx_equal_to_byte(self, byte_1: Byte, byte_2: Byte):
+        if byte_2 == self.V[byte_1.get_low_nibble()]:
+            self.program_counter += 2
+
+    def skip_if_vx__not_equal_to_byte(self, byte_1: Byte, byte_2: Byte):
+        if byte_2 != self.V[byte_1.get_low_nibble()]:
+            self.program_counter += 2
+
+    def skip_if_vx__equal_to_vy(self, byte_1: Byte, byte_2: Byte):
+        if self.V[byte_1.byte_1.get_low_nibble()] == self.V[byte_2.get_high_nibble()]:
+            self.program_counter += 2
+
+    def load_vx_from_byte(self, byte_1: Byte, byte_2: Byte):
+        self.V[byte_1.get_low_nibble()] = byte_2.byte
+
+    def add_vx_byte(self, byte_1: Byte, byte_2: Byte):
+        result = self.V[byte_1.get_low_nibble()] + byte_2.byte
+        # Handle the case of overflowing an 8 bit register.
+        if result > 0xFF:
+            result = result % 0xFF
+        self.V[byte_1.get_low_nibble()] = result
+
+    def registers_operation(self, byte_1: Byte, byte_2: Byte):
+        # OPcodes starting with 8 are defined more precisely by the last nibble of the two byte opcode
+        if byte_2.get_low_nibble() == 0x0:
+            self.load_vy_into_vx(byte_1, byte_2)
+        elif byte_2.get_low_nibble() == 0x1:
+            self.bitwise_or_vx_with_vy(byte_1, byte_2)
+        elif byte_2.get_low_nibble() == 0x2:
+            self.bitwise_and_vx_with_vy(byte_1, byte_2)
+        elif byte_2.get_low_nibble() == 0x3:
+            self.bitwise_xor_vx_with_vy(byte_1, byte_2)
+        elif byte_2.get_low_nibble() == 0x4:
+            self.add_vx_to_vy(byte_1, byte_2)
+        elif byte_2.get_low_nibble() == 0x5:
+            self.substract_vx_minus_vy(byte_1, byte_2)
+        elif byte_2.get_low_nibble() == 0x6:
+            self.shift_right_vx_to_vy(byte_1, byte_2)
+        elif byte_2.get_low_nibble() == 0x7:
+            self.substract_vy_minus_vx(byte_1, byte_2)
+        elif byte_2.get_low_nibble() == 0xE:
+            self.shift_right_vx_to_vy(byte_1, byte_2)
+
+    def load_vy_into_vx(self, byte_1: Byte, byte_2: Byte):
+        return None
+
+    def bitwise_or_vx_with_vy(self, byte_1: Byte, byte_2: Byte):
+        return None
+
+    def bitwise_and_vx_with_vy(self, byte_1: Byte, byte_2: Byte):
+        return None
+
+    def bitwise_xor_vx_with_vy(self, byte_1: Byte, byte_2: Byte):
+        return None
+
+    def add_vx_to_vy(self, byte_1: Byte, byte_2: Byte):
+        return None
+
+    def substract_vx_minus_vy(self, byte_1: Byte, byte_2: Byte):
+        return None
+
+    def shift_right_vx_to_vy(self, byte_1: Byte, byte_2: Byte):
+        return None
+
+    def substract_vy_minus_vx(self, byte_1: Byte, byte_2: Byte):
+        return None
+
+    def shift_left_vx_to_vy(self, byte_1: Byte, byte_2: Byte):
+        return None
+
+    def skip_if_vx_not_equal_to_vy(self, byte_1: Byte, byte_2: Byte):
+        if self.V[byte_1.get_low_nibble()] != self.V[byte_2.get_high_nibble()]:
+            self.program_counter += 2
+
+    def load_i_from_byte(self, byte_1: Byte, byte_2: Byte):
+        self.I = ByteUtils.concatenate_nibble_before_byte(byte_1.get_low_nibble(), byte_2.byte)
+
+    def jump_to_v0_plus_byte(self, byte_1: Byte, byte_2: Byte):
+        address = ByteUtils.concatenate_nibble_before_byte(byte_1.get_low_nibble(), byte_2.byte)
+        self.program_counter = (address + self.V[0])
+
+    def random_number_bitwise_and(self, byte_1: Byte, byte_2: Byte):
+        random_number = randint(0x00, 0xFF)
+        result = random_number & byte_2.byte
+        self.V[byte_1.get_low_nibble()] = result
+
+    def draw_sprite_on_vx_vy(self, byte_1: Byte, byte_2: Byte):
+        sprite_size = byte_2.get_low_nibble()
+        x = self.V[byte_1.get_low_nibble()]
+        y = self.V[byte_2.get_high_nibble()]
+        self.screen.draw_sprite(self.memory, self.I, x, y, self.V[0xF], sprite_size)

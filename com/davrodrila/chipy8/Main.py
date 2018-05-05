@@ -7,7 +7,6 @@ from pygame.locals import *
 
 
 def Main():
-
     print("Starting Emulator...")
 
     rom_path = "resources/pong.rom"
@@ -18,7 +17,6 @@ def Main():
     screen = Screen(scale_mode)
     cpu = CPU(screen, font_path, font_prefix)
     cpu.memory.load_rom_to_memory(rom)
-
     emulation_is_running = True
     pygame.init()
     screen.init_screen()
@@ -27,11 +25,10 @@ def Main():
         cpu.do_cycle()
         events = pygame.event.get()
         for event in events:
-            if event.type==pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     emulation_is_running = False
                     print("Closing windows...")
-
 
 
 Main()

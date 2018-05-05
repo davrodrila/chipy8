@@ -35,7 +35,7 @@ class Memory:
         self.load_built_in_sprites()
         print("")
 
-    def read_from_address(self, address):
+    def read_from_address(self, address) -> Byte:
         try:
             return Byte(self.memory[address])
         except IndexError:
@@ -66,7 +66,6 @@ class Memory:
         for i in range(self.FONT_FILE_SPRITE_DATA_START,self.FONT_FILE_SIZE):
             sprite_data.append(font[i])
         self.write_sprite_to_memory(starting_address, sprite_data)
-        return None
 
     def write_sprite_to_memory(self, starting_address, sprite_data):
         current_address = starting_address
