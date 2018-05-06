@@ -75,7 +75,7 @@ class CPU:
     # (Apparently this is isn't 100% accurate but we'll see)
 
     def unsupported_opcode(self, byte1: Byte, byte2: Byte):
-        print("Opcode is not supported yet for byte: %s" % (hex(byte1.byte)))
+        print("Opcode is not supported yet for byte: %s%s" % (hex(byte1.byte)))
 
     def do_cycle(self):
         # read opcode from PC
@@ -89,7 +89,8 @@ class CPU:
         #
         self.opcodes[first_word.get_high_nibble()](first_word, second_word)
         self.screen.draw()
-        return None
+
+
 
     def misc_operations(self, byte1: Byte, byte2: Byte):
         if byte2 == 0xE0:
@@ -102,7 +103,7 @@ class CPU:
 
     # TODO: This needs a proper stack implementation
     def return_from_subroutine(self, byte_1: Byte, byte_2: Byte):
-        self.program_counter = self.stack.pop(self.stack_pointer)
+        self.program_counter = self.stack.pop(self.stack_pointer) +2
         self.stack_pointer = -1
 
     def jump_to_addres(self, byte_1: Byte, byte_2: Byte):

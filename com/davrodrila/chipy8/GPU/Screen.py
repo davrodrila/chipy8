@@ -55,16 +55,16 @@ class Screen:
 
     def draw_sprite(self, memory, starting_address, x, y, vf, sprite_size):
         for i in range(0, sprite_size):
+
             byte = bin(memory.read_from_address(starting_address).byte).format('b')
             byte = byte[2:]
-            print(byte)
-            j = 0
+            offset_x = x
             for j in range(0, len(byte)):
                 if byte[j] == '1':
-                   self.screen_data[x][y] = self.drawing_color
+                   self.screen_data[offset_x][y] = self.drawing_color
                 else:
-                   self.screen_data[x][y] = self.background_color
-                x += 1
+                   self.screen_data[offset_x][y] = self.background_color
+                offset_x += 1
 
             starting_address += 1
             y += 1
