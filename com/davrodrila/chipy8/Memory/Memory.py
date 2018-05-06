@@ -24,14 +24,14 @@ class Memory:
     FONT_FILE_SIZE = 6
 
     # List of the font system built in the CHIP8 system
-    BUILTIN_FONT_SPRITE_LIST = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
+    BUILTIN_FONT_SPRITE_LIST = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF}
 
     def __init__(self, font_directory, font_prefix):
         self.memory = [0x00 for i in range(self.MEMORY_TOTAL_SIZE)]
 
         self.font_directory = font_directory
         self.font_prefix = font_prefix
-
+        self.font_starting_addresses = []
         self.load_built_in_sprites()
         print("")
 
@@ -58,12 +58,13 @@ class Memory:
             self.load_sprite_from_file(sprite)
 
     def load_sprite_from_file(self, sprite):
-        font_file = self.font_directory + self.font_prefix + "_" + sprite
+        font = hex(sprite)[2:]
+        font_file = self.font_directory + self.font_prefix + "_" + font
         font = FileUtils.load_file_from_path(font_file)
         starting_address = font[self.FONT_FILE_STARTING_ADDRESS]
         sprite_data = []
-
-        for i in range(self.FONT_FILE_SPRITE_DATA_START,self.FONT_FILE_SIZE):
+        self.font_starting_addresses.insert(sprite,starting_address)
+        for i in range(self.FONT_FILE_SPRITE_DATA_START, self.FONT_FILE_SIZE):
             sprite_data.append(font[i])
         self.write_sprite_to_memory(starting_address, sprite_data)
 
@@ -72,3 +73,6 @@ class Memory:
         for i in range(len(sprite_data)):
             self.write_to_memory(current_address, sprite_data[i])
             current_address += 1
+
+    def get_font_starting_address(self, font_desired):
+        return self.font_starting_addresses[font_desired]

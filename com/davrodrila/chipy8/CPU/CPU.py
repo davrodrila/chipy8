@@ -62,6 +62,9 @@ class CPU:
         opcodes[0xB] = self.jump_to_v0_plus_byte
         opcodes[0xC] = self.random_number_bitwise_and
         opcodes[0xD] = self.draw_sprite_on_vx_vy
+        opcodes[0xE] = self.unsupported_opcode
+        opcodes[0xF] = self.timer_and_fonts_opcodes
+
         return opcodes
 
     def initialize_general_registers(self):
@@ -75,7 +78,7 @@ class CPU:
     # (Apparently this is isn't 100% accurate but we'll see)
 
     def unsupported_opcode(self, byte1: Byte, byte2: Byte):
-        print("Opcode is not supported yet for byte: %s%s" % (hex(byte1.byte)))
+        print("Opcode is not supported yet for byte: %s" % (hex(byte1.byte)))
 
     def do_cycle(self):
         # read opcode from PC
@@ -90,8 +93,6 @@ class CPU:
         self.opcodes[first_word.get_high_nibble()](first_word, second_word)
         self.screen.draw()
 
-
-
     def misc_operations(self, byte1: Byte, byte2: Byte):
         if byte2 == 0xE0:
             self.clear_screen()
@@ -103,7 +104,7 @@ class CPU:
 
     # TODO: This needs a proper stack implementation
     def return_from_subroutine(self, byte_1: Byte, byte_2: Byte):
-        self.program_counter = self.stack.pop(self.stack_pointer) +2
+        self.program_counter = self.stack.pop(self.stack_pointer) + 2
         self.stack_pointer = -1
 
     def jump_to_addres(self, byte_1: Byte, byte_2: Byte):
@@ -158,31 +159,31 @@ class CPU:
             self.shift_right_vx_to_vy(byte_1, byte_2)
 
     def load_vy_into_vx(self, byte_1: Byte, byte_2: Byte):
-        return None
+        pass
 
     def bitwise_or_vx_with_vy(self, byte_1: Byte, byte_2: Byte):
-        return None
+        pass
 
     def bitwise_and_vx_with_vy(self, byte_1: Byte, byte_2: Byte):
-        return None
+        pass
 
     def bitwise_xor_vx_with_vy(self, byte_1: Byte, byte_2: Byte):
-        return None
+        pass
 
     def add_vx_to_vy(self, byte_1: Byte, byte_2: Byte):
-        return None
+        pass
 
     def substract_vx_minus_vy(self, byte_1: Byte, byte_2: Byte):
-        return None
+        pass
 
     def shift_right_vx_to_vy(self, byte_1: Byte, byte_2: Byte):
-        return None
+        pass
 
     def substract_vy_minus_vx(self, byte_1: Byte, byte_2: Byte):
-        return None
+        pass
 
     def shift_left_vx_to_vy(self, byte_1: Byte, byte_2: Byte):
-        return None
+        pass
 
     def skip_if_vx_not_equal_to_vy(self, byte_1: Byte, byte_2: Byte):
         if self.V[byte_1.get_low_nibble()] != self.V[byte_2.get_high_nibble()]:
@@ -204,4 +205,32 @@ class CPU:
         sprite_size = byte_2.get_low_nibble()
         x = self.V[byte_1.get_low_nibble()]
         y = self.V[byte_2.get_high_nibble()]
-        self.screen.draw_sprite(self.memory, self.I, x, y, self.V[0xF], sprite_size)
+        self.V[0xF] = self.screen.draw_sprite(self.memory, self.I, x, y, sprite_size)
+
+    def timer_and_fonts_opcodes(self, byte_1: Byte, byte_2: Byte):
+        if byte_2.byte==0x07:
+            self.set_vx_to_dt(byte_1, byte_2)
+        elif byte_2.byte==0x0A:
+            self.load_pressed_key_into_vx(byte_1,byte_2)
+        elif byte_2.byte==0x15:
+            self.set_dt_to_vx(byte_1,byte_2)
+        elif byte_2.byte==0x18:
+            pass
+        elif byte_2.byte==0x1E:
+            pass
+        elif byte_2.byte==0x29:
+            self.load_vx_font_to_i(byte_1,byte_2)
+        elif byte_2.byte==0x33:
+            pass
+        elif byte_2.byte==0x55:
+            pass
+        elif byte_2.byte==0x65:
+            pass
+
+    def load_vx_font_to_i(self,byte_1 : Byte, byte_2 : Byte):
+        address = self.memory.get_font_starting_address(byte_1.get_low_nibble())
+        self.I = address
+
+
+
+
