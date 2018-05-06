@@ -62,7 +62,7 @@ class CPU:
         opcodes[0xB] = self.jump_to_v0_plus_byte
         opcodes[0xC] = self.random_number_bitwise_and
         opcodes[0xD] = self.draw_sprite_on_vx_vy
-        opcodes[0xE] = self.unsupported_opcode
+        opcodes[0xE] = self.keyboard_operations
         opcodes[0xF] = self.timer_and_fonts_opcodes
 
         return opcodes
@@ -207,30 +207,62 @@ class CPU:
         y = self.V[byte_2.get_high_nibble()]
         self.V[0xF] = self.screen.draw_sprite(self.memory, self.I, x, y, sprite_size)
 
-    def timer_and_fonts_opcodes(self, byte_1: Byte, byte_2: Byte):
-        if byte_2.byte==0x07:
-            self.set_vx_to_dt(byte_1, byte_2)
-        elif byte_2.byte==0x0A:
-            self.load_pressed_key_into_vx(byte_1,byte_2)
-        elif byte_2.byte==0x15:
-            self.set_dt_to_vx(byte_1,byte_2)
-        elif byte_2.byte==0x18:
-            pass
-        elif byte_2.byte==0x1E:
-            pass
-        elif byte_2.byte==0x29:
-            self.load_vx_font_to_i(byte_1,byte_2)
-        elif byte_2.byte==0x33:
-            pass
-        elif byte_2.byte==0x55:
-            pass
-        elif byte_2.byte==0x65:
-            pass
+    def keyboard_operations(self,byte_1, byte_2):
+        if byte_2.byte == 0x9E:
+            self.skip_if_key_vx_pressed(byte_1, byte_2)
+        elif byte_2.byte == 0xA1:
+            self.skip_if_key_vx_not_pressed(byte_1, byte_2)
 
-    def load_vx_font_to_i(self,byte_1 : Byte, byte_2 : Byte):
+    def skip_if_key_vx_pressed(self, byte_1, byte_2):
+        pass
+
+    def skip_if_key_vx_not_pressed(self,byte_1, byte_2):
+        pass
+
+    def timer_and_fonts_opcodes(self, byte_1: Byte, byte_2: Byte):
+        if byte_2.byte == 0x07:
+            self.set_vx_to_dt(byte_1, byte_2)
+        elif byte_2.byte == 0x0A:
+            self.load_pressed_key_into_vx(byte_1, byte_2)
+        elif byte_2.byte == 0x15:
+            self.set_dt_to_vx(byte_1, byte_2)
+        elif byte_2.byte == 0x18:
+            self.set_st_to_vy(byte_1, byte_2)
+        elif byte_2.byte == 0x1E:
+            self.add_vx_to_i(byte_1, byte_2)
+        elif byte_2.byte == 0x29:
+            self.load_vx_font_to_i(byte_1, byte_2)
+        elif byte_2.byte == 0x33:
+            self.load_vx_as_bcd_to_i(byte_1, byte_2)
+        elif byte_2.byte == 0x55:
+            self.store_v0_to_vx_into_i(byte_1, byte_2)
+        elif byte_2.byte == 0x65:
+            self.read_v0_to_vx_from_i(byte_1, byte_2)
+
+    def set_vx_to_dt(self, byte_1, byte_2):
+        pass
+
+    def load_pressed_key_into_vx(self, byte_1, byte_2):
+        pass
+
+    def set_dt_to_vx(self, byte_1, byte_2):
+        pass
+
+    def set_st_to_vy(self, byte_1, byte_2):
+        pass
+
+    def add_vx_to_i(self, byte_1, byte_2):
+        pass
+
+    def load_vx_font_to_i(self, byte_1: Byte, byte_2: Byte):
         address = self.memory.get_font_starting_address(byte_1.get_low_nibble())
         self.I = address
 
+    def load_vx_as_bcd_to_i(self, byte_1, byte_2):
+        pass
 
+    def store_v0_to_vx_into_i(self, byte_1, byte_2):
+        pass
 
-
+    def read_v0_to_vs_from_i(self, byte_1, byte_2):
+        pass
