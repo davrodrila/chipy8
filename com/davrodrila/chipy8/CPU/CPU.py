@@ -86,10 +86,11 @@ class CPU:
         first_word = self.memory.read_from_address(self.program_counter)
         self.program_counter += 1
         second_word = self.memory.read_from_address(self.program_counter)
-
+        self.program_counter += 1
         # execute opcode
         # ¿decrease timers if needed?
         #
+        print("Attempting opcode %s%s" % (hex(first_word.byte),hex(second_word.byte)))
         self.opcodes[first_word.get_high_nibble()](first_word, second_word)
         self.screen.draw()
 
@@ -255,7 +256,7 @@ class CPU:
         pass
 
     def load_vx_font_to_i(self, byte_1: Byte, byte_2: Byte):
-        address = self.memory.get_font_starting_address(byte_1.get_low_nibble())
+        address = self.memory.get_font_starting_address(self.V[byte_1.get_low_nibble()])
         self.I = address
 
     def load_vx_as_bcd_to_i(self, byte_1, byte_2):
@@ -264,5 +265,5 @@ class CPU:
     def store_v0_to_vx_into_i(self, byte_1, byte_2):
         pass
 
-    def read_v0_to_vs_from_i(self, byte_1, byte_2):
+    def read_v0_to_vx_from_i(self, byte_1, byte_2):
         pass

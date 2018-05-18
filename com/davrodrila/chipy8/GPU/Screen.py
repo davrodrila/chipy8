@@ -13,8 +13,8 @@ BASE_DRAWING_SCALE = 1
 
 class Screen:
     def __init__(self, scale_factor):
-        self.screen_width = CHIP_8_WIDTH
-        self.screen_height = CHIP_8_HEIGHT
+        self.screen_width = CHIP_8_WIDTH+1
+        self.screen_height = CHIP_8_HEIGHT+1
 
         if scale_factor <= 0:
             self.scale_factor = NO_SCALE
@@ -55,23 +55,28 @@ class Screen:
 
     def draw_sprite(self, memory, starting_address, x, y, sprite_size):
         vf = 0
+        address = starting_address
         for i in range(0, sprite_size):
 
-            byte = bin(memory.read_from_address(starting_address).byte).format('b')
+            byte = bin(memory.read_from_address(address).byte).format('b')
             byte = byte[2:]
             offset_x = x
             for j in range(0, len(byte)):
-                if byte[j] == '1':
+                try:
+                    if byte[j] == '1':
                     # If this is correct, then the pixel is turned on already. It needs to be turned off and the VF registers should be put to 1
-                    if self.screen_data[offset_x][y] == self.drawing_color:
-                        self.screen_data[offset_x][y] = self.background_color
-                        vf = 1
+
+                        if self.screen_data[offset_x][y] == self.drawing_color:
+                            self.screen_data[offset_x][y] = self.background_color
+                            vf = 1
+                        else:
+                            self.screen_data[offset_x][y] = self.drawing_color
                     else:
-                        self.screen_data[offset_x][y] = self.drawing_color
-                else:
-                   self.screen_data[offset_x][y] = self.background_color
+                       self.screen_data[offset_x][y] = self.background_color
+                except IndexError:
+                    print("Error accessing X:%s Y:%s " % (x, y))
                 offset_x += 1
 
-            starting_address += 1
+            address += 1
             y += 1
         return vf
