@@ -180,7 +180,7 @@ class CPU:
             self.V[byte_1.get_low_nibble()] = result % 0xFF
         else:
             self.V[0xF] = 0
-            self.V[byte_1.byte_1.get_low_nibble()] = result
+            self.V[byte_1.get_low_nibble()] = result
 
     def subtract_vx_minus_vy(self, byte_1: Byte, byte_2: Byte):
         if self.V[byte_1.get_low_nibble()] > self.V[byte_2.get_high_nibble()]:
@@ -197,7 +197,7 @@ class CPU:
             self.V[0xF] = 0
         else:
             self.V[0xF] = 1
-        self.V[byte_1.byte_1.get_low_nibble()] = self.V[byte_1.byte_1.get_low_nibble()] >> 1
+        self.V[byte_1.get_low_nibble()] = self.V[byte_1.get_low_nibble()] >> 1
 
     def subtract_vy_minus_vx(self, byte_1: Byte, byte_2: Byte):
         if self.V[byte_2.get_high_nibble()] > self.V[byte_1.get_low_nibble()]:
@@ -281,7 +281,7 @@ class CPU:
         self.ST = self.V[byte_1.get_low_nibble()]
 
     def add_vx_to_i(self, byte_1, byte_2):
-        self.I += self.V[byte_1.byte_1.get_low_nibble()]
+        self.I += self.V[byte_1.get_low_nibble()]
 
     def load_vx_font_to_i(self, byte_1: Byte, byte_2: Byte):
         address = self.memory.get_font_starting_address(self.V[byte_1.get_low_nibble()])
