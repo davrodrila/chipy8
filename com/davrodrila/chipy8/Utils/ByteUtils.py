@@ -4,5 +4,5 @@
 from com.davrodrila.chipy8.Utils.Byte import Byte
 
 
-def concatenate_nibble_before_byte(nibble, byte):
+def prefix_nibble_to_byte(nibble, byte):
     return (nibble << 8) | (byte & 0x0FF)

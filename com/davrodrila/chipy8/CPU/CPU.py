@@ -90,9 +90,11 @@ class CPU:
         # execute opcode
         # ¿decrease timers if needed?
         #
-        print("Attempting opcode %s%s" % (hex(first_word.byte),hex(second_word.byte)))
+        print("Attempting opcode %s%s" % (hex(first_word.byte), hex(second_word.byte)))
         self.opcodes[first_word.get_high_nibble()](first_word, second_word)
         self.screen.draw()
+        self.DT -=1
+        self.ST -=1
 
     def misc_operations(self, byte1: Byte, byte2: Byte):
         if byte2 == 0xE0:
@@ -109,12 +111,12 @@ class CPU:
         self.stack_pointer = -1
 
     def jump_to_addres(self, byte_1: Byte, byte_2: Byte):
-        self.program_counter = ByteUtils.concatenate_nibble_before_byte(byte_1.get_low_nibble(), byte_2.byte)
+        self.program_counter = ByteUtils.prefix_nibble_to_byte(byte_1.get_low_nibble(), byte_2.byte)
 
     def call_addres(self, byte_1: Byte, byte_2: Byte):
         self.stack_pointer += 1
         self.stack.append(self.program_counter)
-        self.program_counter = ByteUtils.concatenate_nibble_before_byte(byte_1.get_low_nibble(), byte_2.byte)
+        self.program_counter = ByteUtils.prefix_nibble_to_byte(byte_1.get_low_nibble(), byte_2.byte)
 
     def skip_if_vx_equal_to_byte(self, byte_1: Byte, byte_2: Byte):
         if byte_2 == self.V[byte_1.get_low_nibble()]:
@@ -139,7 +141,7 @@ class CPU:
         self.V[byte_1.get_low_nibble()] = result
 
     def registers_operation(self, byte_1: Byte, byte_2: Byte):
-        # OPcodes starting with 8 are defined more precisely by the last nibble of the two byte opcode
+        # OPcodes starting with 8 are defined by the last nibble of the two byte opcode
         if byte_2.get_low_nibble() == 0x0:
             self.load_vy_into_vx(byte_1, byte_2)
         elif byte_2.get_low_nibble() == 0x1:
@@ -151,50 +153,76 @@ class CPU:
         elif byte_2.get_low_nibble() == 0x4:
             self.add_vx_to_vy(byte_1, byte_2)
         elif byte_2.get_low_nibble() == 0x5:
-            self.substract_vx_minus_vy(byte_1, byte_2)
+            self.subtract_vx_minus_vy(byte_1, byte_2)
         elif byte_2.get_low_nibble() == 0x6:
             self.shift_right_vx_to_vy(byte_1, byte_2)
         elif byte_2.get_low_nibble() == 0x7:
-            self.substract_vy_minus_vx(byte_1, byte_2)
+            self.subtract_vy_minus_vx(byte_1, byte_2)
         elif byte_2.get_low_nibble() == 0xE:
             self.shift_right_vx_to_vy(byte_1, byte_2)
 
     def load_vy_into_vx(self, byte_1: Byte, byte_2: Byte):
-        pass
+        self.V[byte_1.get_low_nibble()] = self.V[byte_2.get_high_nibble()]
 
     def bitwise_or_vx_with_vy(self, byte_1: Byte, byte_2: Byte):
-        pass
+        self.V[byte_1.get_low_nibble()] = self.V[byte_1.get_low_nibble()] | self.V[byte_2.get_high_nibble()]
 
     def bitwise_and_vx_with_vy(self, byte_1: Byte, byte_2: Byte):
-        pass
+        self.V[byte_1.get_low_nibble()] = self.V[byte_1.get_low_nibble()] & self.V[byte_2.get_high_nibble()]
 
     def bitwise_xor_vx_with_vy(self, byte_1: Byte, byte_2: Byte):
-        pass
+        self.V[byte_1.get_low_nibble()] = self.V[byte_1.get_low_nibble()] ^ self.V[byte_2.get_high_nibble()]
 
     def add_vx_to_vy(self, byte_1: Byte, byte_2: Byte):
-        pass
+        result = self.V[byte_1.get_low_nibble()] + self.V[byte_2.get_high_nibble()]
+        if result > 0xFF:
+            self.V[0xF] = 1  # F register is used as a carry one flag. We're setting it up like that.
+            self.V[byte_1.get_low_nibble()] = result % 0xFF
+        else:
+            self.V[0xF] = 0
+            self.V[byte_1.byte_1.get_low_nibble()] = result
 
-    def substract_vx_minus_vy(self, byte_1: Byte, byte_2: Byte):
-        pass
+    def subtract_vx_minus_vy(self, byte_1: Byte, byte_2: Byte):
+        if self.V[byte_1.get_low_nibble()] > self.V[byte_2.get_high_nibble()]:
+            self.V[0xF] = 1
+        else:
+            self.V[0xF] = 0
+        self.V[byte_1.get_low_nibble()] -= self.V[byte_2.get_high_nibble()]
 
     def shift_right_vx_to_vy(self, byte_1: Byte, byte_2: Byte):
-        pass
+        # We need to set VF to 1 if least significant bit of Vx is 1.
+        # If VX is an even number, then the least significant bit will be 0.
+        # In case of odd number, least significant bit must be 1
+        if self.V[byte_1.get_low_nibble()] % 2 == 0:
+            self.V[0xF] = 0
+        else:
+            self.V[0xF] = 1
+        self.V[byte_1.byte_1.get_low_nibble()] = self.V[byte_1.byte_1.get_low_nibble()] >> 1
 
-    def substract_vy_minus_vx(self, byte_1: Byte, byte_2: Byte):
-        pass
+    def subtract_vy_minus_vx(self, byte_1: Byte, byte_2: Byte):
+        if self.V[byte_2.get_high_nibble()] > self.V[byte_1.get_low_nibble()]:
+            self.V[0xF] = 1
+        else:
+            self.V[0xF] = 0
+        self.V[byte_1.get_low_nibble()] = self.V[byte_2.get_high_nibble()] - self.V[byte_1.get_low_nibble()]
 
     def shift_left_vx_to_vy(self, byte_1: Byte, byte_2: Byte):
-        pass
+        # VF needs to be set to 1 in case most significant number of VX is set to 1.
+        if self.V[byte_1.get_low_nibble()] >= 0x80:
+            self.V[0xF] = 1
+        else:
+            self.V[0xF] = 0
+        self.V[byte_1.get_low_nibble()] = self.V[byte_1.get_low_nibble()] << 1
 
     def skip_if_vx_not_equal_to_vy(self, byte_1: Byte, byte_2: Byte):
         if self.V[byte_1.get_low_nibble()] != self.V[byte_2.get_high_nibble()]:
             self.program_counter += 2
 
     def load_i_from_byte(self, byte_1: Byte, byte_2: Byte):
-        self.I = ByteUtils.concatenate_nibble_before_byte(byte_1.get_low_nibble(), byte_2.byte)
+        self.I = ByteUtils.prefix_nibble_to_byte(byte_1.get_low_nibble(), byte_2.byte)
 
     def jump_to_v0_plus_byte(self, byte_1: Byte, byte_2: Byte):
-        address = ByteUtils.concatenate_nibble_before_byte(byte_1.get_low_nibble(), byte_2.byte)
+        address = ByteUtils.prefix_nibble_to_byte(byte_1.get_low_nibble(), byte_2.byte)
         self.program_counter = (address + self.V[0])
 
     def random_number_bitwise_and(self, byte_1: Byte, byte_2: Byte):
@@ -208,7 +236,7 @@ class CPU:
         y = self.V[byte_2.get_high_nibble()]
         self.V[0xF] = self.screen.draw_sprite(self.memory, self.I, x, y, sprite_size)
 
-    def keyboard_operations(self,byte_1, byte_2):
+    def keyboard_operations(self, byte_1, byte_2):
         if byte_2.byte == 0x9E:
             self.skip_if_key_vx_pressed(byte_1, byte_2)
         elif byte_2.byte == 0xA1:
@@ -217,7 +245,7 @@ class CPU:
     def skip_if_key_vx_pressed(self, byte_1, byte_2):
         pass
 
-    def skip_if_key_vx_not_pressed(self,byte_1, byte_2):
+    def skip_if_key_vx_not_pressed(self, byte_1, byte_2):
         pass
 
     def timer_and_fonts_opcodes(self, byte_1: Byte, byte_2: Byte):
@@ -228,7 +256,7 @@ class CPU:
         elif byte_2.byte == 0x15:
             self.set_dt_to_vx(byte_1, byte_2)
         elif byte_2.byte == 0x18:
-            self.set_st_to_vy(byte_1, byte_2)
+            self.set_st_to_vx(byte_1, byte_2)
         elif byte_2.byte == 0x1E:
             self.add_vx_to_i(byte_1, byte_2)
         elif byte_2.byte == 0x29:
@@ -241,19 +269,19 @@ class CPU:
             self.read_v0_to_vx_from_i(byte_1, byte_2)
 
     def set_vx_to_dt(self, byte_1, byte_2):
-        pass
+        self.V[byte_1.get_low_nibble()] = self.DT
 
     def load_pressed_key_into_vx(self, byte_1, byte_2):
         pass
 
     def set_dt_to_vx(self, byte_1, byte_2):
-        pass
+        self.DT = self.V[byte_1.get_low_nibble()]
 
-    def set_st_to_vy(self, byte_1, byte_2):
-        pass
+    def set_st_to_vx(self, byte_1, byte_2):
+        self.ST = self.V[byte_1.get_low_nibble()]
 
     def add_vx_to_i(self, byte_1, byte_2):
-        pass
+        self.I += self.V[byte_1.byte_1.get_low_nibble()]
 
     def load_vx_font_to_i(self, byte_1: Byte, byte_2: Byte):
         address = self.memory.get_font_starting_address(self.V[byte_1.get_low_nibble()])
