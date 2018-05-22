@@ -75,4 +75,7 @@ class Memory:
             current_address += 1
 
     def get_font_starting_address(self, font_desired):
-        return self.font_starting_addresses[font_desired]
+        try:
+            return self.font_starting_addresses[font_desired]
+        except (IndexError, TypeError):
+            print("Error trying to print font: %s" % (hex(font_desired)))

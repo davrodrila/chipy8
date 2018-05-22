@@ -52,6 +52,7 @@ class Screen:
         for x in range(self.screen_width):
             for y in range(self.screen_height):
                 self.screen_data[x][y] = self.background_color
+        pygame.display.update()
 
     def draw_sprite(self, memory, starting_address, x, y, sprite_size):
         vf = 0
@@ -62,19 +63,19 @@ class Screen:
             byte = byte[2:]
             offset_x = x
             for j in range(0, len(byte)):
-                try:
-                    if byte[j] == '1':
-                    # If this is correct, then the pixel is turned on already. It needs to be turned off and the VF registers should be put to 1
+                if offset_x > CHIP_8_WIDTH:
+                    offset_x = offset_x % CHIP_8_WIDTH
+                if y > CHIP_8_HEIGHT:
+                    y = y % CHIP_8_HEIGHT
+                elif y < 0:
+                    y = CHIP_8_HEIGHT - y
 
-                        if self.screen_data[offset_x][y] == self.drawing_color:
-                            self.screen_data[offset_x][y] = self.background_color
-                            vf = 1
-                        else:
-                            self.screen_data[offset_x][y] = self.drawing_color
+                if byte[j] == '1':
+                    if self.screen_data[offset_x][y] == self.drawing_color:
+                        self.screen_data[offset_x][y] = self.background_color
+                        vf = 1
                     else:
-                       self.screen_data[offset_x][y] = self.background_color
-                except IndexError:
-                    print("Error accessing X:%s Y:%s " % (x, y))
+                        self.screen_data[offset_x][y] = self.drawing_color
                 offset_x += 1
 
             address += 1

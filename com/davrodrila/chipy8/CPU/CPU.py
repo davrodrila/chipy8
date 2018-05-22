@@ -138,6 +138,7 @@ class CPU:
         # Handle the case of overflowing an 8 bit register.
         if result > 0xFF:
             result = result % 0xFF
+            self.V[0xF] = 1
         self.V[byte_1.get_low_nibble()] = result
 
     def registers_operation(self, byte_1: Byte, byte_2: Byte):
@@ -291,7 +292,21 @@ class CPU:
         pass
 
     def store_v0_to_vx_into_i(self, byte_1, byte_2):
-        pass
+        max_register = byte_1.get_low_nibble()
+        current_address = self.I
+        for current_register in self.GENERAL_PURPOSE_REGISTERS_LIST:
+            if current_register != max_register:
+                self.memory.write_to_memory(current_address, self.V[current_register])
+                current_address += 1
+            else:
+                break
 
     def read_v0_to_vx_from_i(self, byte_1, byte_2):
-        pass
+        max_register = byte_1.get_low_nibble()
+        current_address = self.I
+        for current_register in self.GENERAL_PURPOSE_REGISTERS_LIST:
+            if current_register != max_register:
+                self.V[current_register] = self.memory.read_from_address(current_address).byte
+                current_address += 1
+            else:
+                break
