@@ -90,7 +90,7 @@ class CPU:
         # execute opcode
         # ¿decrease timers if needed?
         #
-        print("Attempting opcode %s%s" % (hex(first_word.byte), hex(second_word.byte)))
+        print("Attempting opcode %s%s" % (hex(first_word.byte), hex(second_word.byte)[2:]))
         self.opcodes[first_word.get_high_nibble()](first_word, second_word)
         self.screen.draw()
         self.DT -=1
@@ -119,15 +119,15 @@ class CPU:
         self.program_counter = ByteUtils.prefix_nibble_to_byte(byte_1.get_low_nibble(), byte_2.byte)
 
     def skip_if_vx_equal_to_byte(self, byte_1: Byte, byte_2: Byte):
-        if byte_2 == self.V[byte_1.get_low_nibble()]:
+        if byte_2.byte == self.V[byte_1.get_low_nibble()]:
             self.program_counter += 2
 
     def skip_if_vx__not_equal_to_byte(self, byte_1: Byte, byte_2: Byte):
-        if byte_2 != self.V[byte_1.get_low_nibble()]:
+        if byte_2.byte != self.V[byte_1.get_low_nibble()]:
             self.program_counter += 2
 
     def skip_if_vx__equal_to_vy(self, byte_1: Byte, byte_2: Byte):
-        if self.V[byte_1.byte_1.get_low_nibble()] == self.V[byte_2.get_high_nibble()]:
+        if self.V[byte_1.get_low_nibble()] == self.V[byte_2.get_high_nibble()]:
             self.program_counter += 2
 
     def load_vx_from_byte(self, byte_1: Byte, byte_2: Byte):
