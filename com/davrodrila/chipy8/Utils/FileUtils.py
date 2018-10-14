@@ -6,3 +6,5 @@ def load_file_from_path(file_path):
         return mmap.mmap(file.fileno(), 0)
     except ValueError:
         print("Error reading file: %s" % (file_path))
+    finally:
+        file.close()

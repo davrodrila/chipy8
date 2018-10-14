@@ -97,10 +97,10 @@ class CPU:
         self.ST -=1
 
     def misc_operations(self, byte1: Byte, byte2: Byte):
-        if byte2 == 0xE0:
-            self.clear_screen()
-        elif byte2 == 0xEE:
-            self.return_from_subroutine()
+        if byte2.byte == 0xE0:
+            self.clear_screen(byte1, byte2)
+        elif byte2.byte == 0xEE:
+            self.return_from_subroutine(byte1, byte2)
 
     def clear_screen(self):
         self.screen.clear_display()
@@ -289,24 +289,29 @@ class CPU:
         self.I = address
 
     def load_vx_as_bcd_to_i(self, byte_1, byte_2):
-        pass
+        value = self.V[byte_1.get_low_nibble()]
+        address = self.I
 
     def store_v0_to_vx_into_i(self, byte_1, byte_2):
         max_register = byte_1.get_low_nibble()
-        current_address = self.I
+
         for current_register in self.GENERAL_PURPOSE_REGISTERS_LIST:
-            if current_register != max_register:
-                self.memory.write_to_memory(current_address, self.V[current_register])
-                current_address += 1
+            if current_register != max_register: # This is wrong. It needs to be inclusive
+                self.memory.write_to_memory(self.I, self.V[current_register])
+                self.I += 1
             else:
                 break
+        self.memory.write_to_memory(self.I, self.V[max_register])
+        self.I += 1
 
     def read_v0_to_vx_from_i(self, byte_1, byte_2):
         max_register = byte_1.get_low_nibble()
-        current_address = self.I
+
         for current_register in self.GENERAL_PURPOSE_REGISTERS_LIST:
             if current_register != max_register:
-                self.V[current_register] = self.memory.read_from_address(current_address).byte
-                current_address += 1
+                self.V[current_register] = self.memory.read_from_address(self.I).byte
+                self.I += 1
             else:
                 break
+        self.V[max_register] = self.memory.read_from_address(self.I).byte
+        self.I += 1
