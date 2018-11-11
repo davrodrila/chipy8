@@ -93,8 +93,8 @@ class CPU:
         print("Attempting opcode %s%s" % (hex(first_word.byte), hex(second_word.byte)[2:]))
         self.opcodes[first_word.get_high_nibble()](first_word, second_word)
         self.screen.draw()
-        self.DT -=1
-        self.ST -=1
+        self.DT -= 1
+        self.ST -= 1
 
     def misc_operations(self, byte1: Byte, byte2: Byte):
         if byte2.byte == 0xE0:
@@ -102,12 +102,12 @@ class CPU:
         elif byte2.byte == 0xEE:
             self.return_from_subroutine(byte1, byte2)
 
-    def clear_screen(self):
-        self.screen.clear_display()
+    def clear_screen(self, byte_1 : Byte, byte_2 : Byte):
+        self.screen.clear_display(byte_1, byte_2)
 
     # TODO: This needs a proper stack implementation
     def return_from_subroutine(self, byte_1: Byte, byte_2: Byte):
-        self.program_counter = self.stack.pop(self.stack_pointer) + 2
+        self.program_counter = self.stack.pop() + 2
         self.stack_pointer = -1
 
     def jump_to_addres(self, byte_1: Byte, byte_2: Byte):

@@ -2,6 +2,8 @@ import pygame
 from pygame.locals import *
 from pygame import Color
 
+from com.davrodrila.chipy8.Utils import Byte
+
 CHIP_8_HEIGHT = 32
 
 CHIP_8_WIDTH = 64
@@ -48,7 +50,7 @@ class Screen:
             x * self.scale_factor, y * self.scale_factor, BASE_DRAWING_SCALE * self.scale_factor,
             BASE_DRAWING_SCALE * self.scale_factor))
 
-    def clear_display(self):
+    def clear_display(self, byte_1 : Byte, byte_2 : Byte):
         for x in range(self.screen_width):
             for y in range(self.screen_height):
                 self.screen_data[x][y] = self.background_color

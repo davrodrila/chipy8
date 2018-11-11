@@ -9,7 +9,7 @@ from pygame.locals import *
 def Main():
     print("Starting Emulator...")
 
-    rom_path = "resources/pong.rom"
+    rom_path = "resources/minimal.rom"
     font_path = "resources/fonts/"
     font_prefix = 'font'
     rom = FileUtils.load_file_from_path(rom_path)
